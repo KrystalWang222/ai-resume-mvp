@@ -1,6 +1,15 @@
 # Overview
 
-This is an AI-powered resume modification tool built with Streamlit. The application allows users to upload PDF resumes, extracts text content from them using pdfplumber, and leverages OpenAI's API to provide AI-assisted resume editing and improvement suggestions. The tool features a dual-column interface design for input and output areas.
+This is an AI-powered resume modification tool built with Streamlit. The application allows users to upload PDF resumes, extracts text content from them using pdfplumber, and leverages OpenAI's gpt-4o-mini model to provide AI-assisted resume editing and improvement suggestions tailored to specific job descriptions (JD). The tool features a dual-column interface design for input and output areas.
+
+## Current Status (Last Updated: 2025-11-22)
+✅ **MVP Complete** - All core features implemented and tested:
+- PDF file upload with pdfplumber text extraction
+- Two-column layout (left: input, right: output)
+- Job description (JD) text input
+- OpenAI gpt-4o-mini integration for resume analysis
+- AI-generated resume modification suggestions in Markdown format
+- Comprehensive error handling for missing files, empty PDFs, and invalid inputs
 
 # User Preferences
 

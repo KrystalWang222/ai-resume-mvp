@@ -141,7 +141,8 @@ with right_col:
                     
                     # 显示使用信息
                     st.markdown("---")
-                    st.caption(f"✨ 已使用 {response.usage.total_tokens} tokens")
+                    if response.usage:
+                        st.caption(f"✨ 已使用 {response.usage.total_tokens} tokens")
                     
             except Exception as e:
                 st.error(f"❌ 调用 OpenAI API 时出错: {str(e)}")
