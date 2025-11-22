@@ -1,15 +1,8 @@
 import streamlit as st
 import pdfplumber
 import os
-from openai import OpenAI
-
-# 初始化 OpenAI 客户端
-# 使用环境变量中的 OPENAI_API_KEY
-GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
-client = OpenAI(
-    api_key=GOOGLE_API_KEY,
-    base_url="https://generativeai.googleapis.com/v1beta/openai/"
-)
+# 1. 改用 Google 官方库，不再用 openai
+import google.generativeai as genai
 
 # 页面配置
 st.set_page_config(
@@ -20,6 +13,12 @@ st.set_page_config(
 
 st.title("📄 AI 简历修改工具")
 st.markdown("---")
+
+# 2. 配置 Google API
+# 依然使用环境变量，Streamlit Secrets 里名字必须是 GOOGLE_API_KEY
+api_key = os.environ.get("GOOGLE_API_KEY")
+if api_key:
+    genai.configure(api_key=api_key)
 
 # 创建左右两栏布局
 left_col, right_col = st.columns(2)
@@ -93,8 +92,10 @@ with right_col:
             st.error("❌ 未能从 PDF 中提取到有效文本")
         elif not job_description.strip():
             st.error("❌ 请输入职位描述 (JD)")
+        elif not api_key:
+            st.error("❌ 未检测到 API Key，请在 Streamlit Secrets 中配置 GOOGLE_API_KEY")
         else:
-            # 调用 OpenAI API
+            # 调用 Google Gemini API
             try:
                 with st.spinner("🤖 AI 正在分析您的简历..."):
                     # System Prompt
@@ -116,40 +117,24 @@ with right_col:
 ## 💡 其他建议
 - 提供其他优化建议"""
 
-                    # 用户消息
-                    user_message = f"""简历内容：
-{resume_text}
+                    # 3. 核心修改：Google SDK 喜欢把 System Prompt 和 用户内容拼在一起
+                    full_prompt = f"{system_prompt}\n\n【用户简历】\n{resume_text}\n\n【职位描述】\n{job_description}"
 
----
-
-职位描述 (JD)：
-{job_description}"""
-
-                    # 调用 Gemini API
-                    response = client.chat.completions.create(
-                        model="gemini-1.5-flash", 
-                        messages=[
-                            {"role": "system", "content": system_prompt},
-                            {"role": "user", "content": user_message}
-                        ],
-                        temperature=0.7,
-                        # max_tokens=2000
-                    )
+                    # 初始化模型 (官方名字，不需要 base_url)
+                    model = genai.GenerativeModel('gemini-1.5-flash')
+                    
+                    # 生成内容
+                    response = model.generate_content(full_prompt)
                     
                     # 获取 AI 响应
-                    ai_suggestion = response.choices[0].message.content
+                    ai_suggestion = response.text
                     
                     # 显示 AI 建议
                     st.markdown(ai_suggestion)
                     
-                    # 显示使用信息
-                    st.markdown("---")
-                    if response.usage:
-                        st.caption(f"✨ 已使用 {response.usage.total_tokens} tokens")
-                    
             except Exception as e:
                 st.error(f"❌ 调用 AI API 时出错: {str(e)}")
-                st.info("💡 请检查您的 AI_API_KEY 是否正确配置")
+                st.info("💡 请检查您的 Secrets 配置是否正确")
     else:
         # 初始提示
         st.info("👈 请在左侧上传简历、输入职位描述，然后点击「开始修改」按钮")
@@ -161,13 +146,6 @@ with right_col:
         1. **上传简历**: 上传您的简历 PDF 文件
         2. **输入 JD**: 粘贴目标职位的职位描述
         3. **开始修改**: 点击按钮，AI 将分析并给出修改建议
-        
-        ### ✨ 功能特点
-        
-        - 🔍 自动分析简历与 JD 的匹配度
-        - 📋 识别缺失的关键技能
-        - ✍️ 重写工作经历，突出相关经验
-        - 💡 提供针对性的优化建议
         """)
 
 # 页脚
