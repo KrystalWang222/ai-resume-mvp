@@ -16,9 +16,12 @@ st.markdown("---")
 
 # 2. 配置 Google API
 # 依然使用环境变量，Streamlit Secrets 里名字必须是 GOOGLE_API_KEY
-api_key = os.environ.get("GOOGLE_API_KEY")
-if api_key:
+try:
+    api_key = st.secrets["GOOGLE_API_KEY"]
     genai.configure(api_key=api_key)
+except Exception as e:
+    # 如果读不到，先设为空，由后面的逻辑报错
+    api_key = None
 
 # 创建左右两栏布局
 left_col, right_col = st.columns(2)
