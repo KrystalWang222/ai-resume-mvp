@@ -5,8 +5,11 @@ from openai import OpenAI
 
 # 初始化 OpenAI 客户端
 # 使用环境变量中的 OPENAI_API_KEY
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
-client = OpenAI(api_key=OPENAI_API_KEY)
+GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
+client = OpenAI(
+    api_key=GOOGLE_API_KEY,
+    base_url="https://generativeai.googleapis.com/v1beta/openai/"
+)
 
 # 页面配置
 st.set_page_config(
@@ -122,9 +125,9 @@ with right_col:
 职位描述 (JD)：
 {job_description}"""
 
-                    # 调用 OpenAI API
+                    # 调用 Gemini API
                     response = client.chat.completions.create(
-                        model="gpt-4o-mini",
+                        model="gemini-1.5-flash",
                         messages=[
                             {"role": "system", "content": system_prompt},
                             {"role": "user", "content": user_message}
@@ -145,8 +148,8 @@ with right_col:
                         st.caption(f"✨ 已使用 {response.usage.total_tokens} tokens")
                     
             except Exception as e:
-                st.error(f"❌ 调用 OpenAI API 时出错: {str(e)}")
-                st.info("💡 请检查您的 OPENAI_API_KEY 是否正确配置")
+                st.error(f"❌ 调用 AI API 时出错: {str(e)}")
+                st.info("💡 请检查您的 AI_API_KEY 是否正确配置")
     else:
         # 初始提示
         st.info("👈 请在左侧上传简历、输入职位描述，然后点击「开始修改」按钮")
