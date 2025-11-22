@@ -127,13 +127,13 @@ with right_col:
 
                     # 调用 Gemini API
                     response = client.chat.completions.create(
-                        model="gemini-1.5-flash",
+                        model="gemini-1.5-flash", 
                         messages=[
                             {"role": "system", "content": system_prompt},
                             {"role": "user", "content": user_message}
                         ],
                         temperature=0.7,
-                        max_tokens=2000
+                        # max_tokens=2000
                     )
                     
                     # 获取 AI 响应
