@@ -1,116 +1,79 @@
 import streamlit as st
 import pdfplumber
-import google.generativeai as genai
+import os
+from openai import OpenAI
 
 # 页面配置
-st.set_page_config(
-    page_title="简历修改工具",
-    page_icon="📄",
-    layout="wide"
-)
+st.set_page_config(page_title="简历修改工具", page_icon="🚀", layout="wide")
 
-st.title("📄 AI 简历修改工具")
+st.title("🚀 AI 简历修改工具 (Groq 版)")
 
 # ==========================================
-# 🔑 核心改动：直接在侧边栏输入 Key
+# 🔑 侧边栏：直接输入 Groq Key
 # ==========================================
 with st.sidebar:
     st.header("⚙️ 设置")
-    api_key = st.text_input("在此输入 Google API Key", type="password", help="请粘贴以 AIza 开头的 Key")
-    
+    api_key = st.text_input("在此输入 Groq API Key", type="password", help="以 gsk_ 开头的 Key")
+    st.markdown("[👉 点击这里申请 Groq Key](https://console.groq.com/keys)")
     st.markdown("---")
-    st.info("🔑 Key 将仅用于本次会话，不会存储")
-
-# 配置 Google API
-if api_key:
-    try:
-        genai.configure(api_key=api_key)
-    except Exception as e:
-        st.error(f"Key 配置出错: {e}")
+    st.info("💡 Groq 速度极快且目前免费")
 
 # ==========================================
-# 下面是主界面逻辑 (保持不变)
+# 主界面逻辑
 # ==========================================
 
 st.markdown("---")
-
-# 创建左右两栏布局
 left_col, right_col = st.columns(2)
 
-# 左侧栏：输入区域
 with left_col:
-    st.header("📤 输入区域")
+    st.header("📤 简历上传")
+    uploaded_file = st.file_uploader("上传 PDF 简历", type=["pdf"])
     
-    # PDF 文件上传
-    uploaded_file = st.file_uploader("上传您的简历 (PDF 格式)", type=["pdf"])
-    
-    # 显示提取的简历文本
     resume_text = ""
-    if uploaded_file is not None:
+    if uploaded_file:
         try:
             with pdfplumber.open(uploaded_file) as pdf:
-                resume_text = ""
                 for page in pdf.pages:
                     text = page.extract_text()
-                    if text:
-                        resume_text += text + "\n"
-            
-            if resume_text.strip():
-                st.success(f"✅ 成功提取简历文本 ({len(resume_text)} 字符)")
-            else:
-                st.warning("⚠️ PDF 文件中未能提取到文本")
-                
+                    if text: resume_text += text + "\n"
+            if resume_text:
+                st.success(f"✅ 提取成功: {len(resume_text)} 字")
         except Exception as e:
-            st.error(f"❌ PDF 处理出错: {str(e)}")
-    
-    # 职位描述输入框
-    job_description = st.text_area(
-        "输入职位描述 (JD)",
-        height=250,
-        placeholder="请粘贴目标职位的职位描述..."
-    )
-    
-    # 开始修改按钮
-    st.markdown("---")
-    start_button = st.button("🚀 开始修改", type="primary", use_container_width=True)
+            st.error(f"❌ 读取出错: {e}")
 
-# 右侧栏：输出区域
+    job_description = st.text_area("输入职位描述 (JD)", height=200, placeholder="粘贴 JD 内容...")
+    start_btn = st.button("🚀 开始修改", type="primary", use_container_width=True)
+
 with right_col:
-    st.header("📝 AI 修改建议")
+    st.header("📝 修改建议")
     
-    if start_button:
-        # 验证所有输入
+    if start_btn:
         if not api_key:
-            st.error("❌ 请先在左侧侧边栏输入 Google API Key")
+            st.error("❌ 请先在左侧输入 Groq API Key")
         elif not uploaded_file:
-            st.error("❌ 请先上传简历 PDF")
-        elif not job_description.strip():
-            st.error("❌ 请输入职位描述")
+            st.error("❌ 请上传简历")
+        elif not job_description:
+            st.error("❌ 请输入 JD")
         else:
-            # 调用 AI
             try:
-                with st.spinner("🤖 AI 正在思考中..."):
-                    # 提示词
-                    full_prompt = f"""你是一个资深招聘官。请分析简历和JD。
-                    
-                    【简历内容】
-                    {resume_text}
-                    
-                    【职位描述】
-                    {job_description}
-                    
-                    请输出：
-                    1. 匹配度分析
-                    2. 缺失技能
-                    3. 优化后的工作经历
-                    """
+                # 初始化 Groq 客户端
+                client = OpenAI(
+                    api_key=api_key,
+                    base_url="https://api.groq.com/openai/v1"
+                )
 
-                    # 使用最稳的 gemini-pro
-                    model = genai.GenerativeModel('gemini-pro')
-                    response = model.generate_content(full_prompt)
-                    
-                    st.markdown(response.text)
+                with st.spinner("⚡️ Llama 3 正在光速思考中..."):
+                    response = client.chat.completions.create(
+                        # 使用 Llama 3 70B (逻辑能力最强)
+                        model="llama3-70b-8192",
+                        messages=[
+                            {"role": "system", "content": "你是一个资深简历专家。请分析简历与JD的匹配度，找出缺失技能，并重写工作经历使其更匹配。请用 Markdown 格式输出。"},
+                            {"role": "user", "content": f"简历内容:\n{resume_text}\n\n职位描述:\n{job_description}"}
+                        ],
+                        temperature=0.7
+                    )
+                    st.markdown(response.choices[0].message.content)
                     
             except Exception as e:
-                st.error(f"❌ 调用失败: {str(e)}")
-                st.warning("请检查您的 API Key 是否正确，或者尝试更换一个 Key")
+                st.error(f"❌ 发生错误: {e}")
+                st.warning("请检查 Key 是否正确，或是否以 gsk_ 开头")
