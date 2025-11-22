@@ -121,7 +121,7 @@ with right_col:
                     full_prompt = f"{system_prompt}\n\n【用户简历】\n{resume_text}\n\n【职位描述】\n{job_description}"
 
                     # 初始化模型 (官方名字，不需要 base_url)
-                    model = genai.GenerativeModel('gemini-pro')
+                    model = genai.GenerativeModel('gemini-1.5-flash')
                     
                     # 生成内容
                     response = model.generate_content(full_prompt)
