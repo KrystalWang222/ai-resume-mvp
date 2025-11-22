@@ -1,4 +1,4 @@
 streamlit==1.32.0
-google-generativeai>=0.5.0
+google-generativeai>=0.7.2   # 强制指定一个非常新的版本
 pdfplumber>=0.10.0
 cryptography
