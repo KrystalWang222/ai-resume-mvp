@@ -62,13 +62,26 @@ with right_col:
                     base_url="https://api.groq.com/openai/v1"
                 )
 
-                with st.spinner("⚡️ Llama 3 正在光速思考中..."):
+                with st.spinner("⚡️ Analyzing and tailoring your resume..."):
                     response = client.chat.completions.create(
-                        # 使用 Llama 3 70B (逻辑能力最强)
+                        # 保持使用最新的 Llama 3.3
                         model="llama-3.3-70b-versatile",
                         messages=[
-                            {"role": "system", "content": "你是一个资深简历专家。请分析简历与JD的匹配度，找出缺失技能，并重写工作经历使其更匹配。请用 Markdown 格式输出。"},
-                            {"role": "user", "content": f"简历内容:\n{resume_text}\n\n职位描述:\n{job_description}"}
+                            # 🔴 核心修改：把 System Prompt 改成专业的英文指令
+                            {"role": "system", "content": """You are an expert Senior Recruiter and Career Coach. 
+                            Your task is to analyze the candidate's Resume against the provided Job Description (JD).
+
+                            Please provide your output strictly in **English** and use Markdown formatting. 
+                            
+                            Your output should include:
+                            1. 📊 **Match Analysis**: A brief assessment of how well the resume fits the role.
+                            2. ⚠️ **Skill Gaps**: Key keywords or skills from the JD that are missing in the resume.
+                            3. ✍️ **Rewritten Experience**: Rewrite the top 3 most relevant bullet points from the resume to better align with the JD keywords. Use strong action verbs and metrics.
+                            4. 💡 **Optimization Tips**: Specific, actionable advice to improve the resume's ATS score.
+                            """},
+                            
+                            # 用户的输入部分保持不变
+                            {"role": "user", "content": f"Resume Content:\n{resume_text}\n\nJob Description:\n{job_description}"}
                         ],
                         temperature=0.7
                     )
