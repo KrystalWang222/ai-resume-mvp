@@ -19,6 +19,19 @@ st.markdown("---")
 api_key = os.environ.get("GOOGLE_API_KEY")
 if api_key:
     genai.configure(api_key=api_key)
+    # 【诊断代码开始】
+    with st.sidebar:
+        st.write("🔧 诊断信息")
+        try:
+            st.write("正在连接 Google...")
+            # 列出所有支持生成的模型
+            models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+            st.success("✅ 连接成功！")
+            with st.expander("查看可用模型列表"):
+                st.write(models)
+        except Exception as e:
+            st.error(f"❌ 连接失败: {e}")
+    # 【诊断代码结束】
 
 # 创建左右两栏布局
 left_col, right_col = st.columns(2)
