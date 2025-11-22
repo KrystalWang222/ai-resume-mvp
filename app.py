@@ -65,7 +65,7 @@ with right_col:
                 with st.spinner("⚡️ Llama 3 正在光速思考中..."):
                     response = client.chat.completions.create(
                         # 使用 Llama 3 70B (逻辑能力最强)
-                        model="llama3-70b-8192",
+                        model="llama-3.3-70b-versatile",
                         messages=[
                             {"role": "system", "content": "你是一个资深简历专家。请分析简历与JD的匹配度，找出缺失技能，并重写工作经历使其更匹配。请用 Markdown 格式输出。"},
                             {"role": "user", "content": f"简历内容:\n{resume_text}\n\n职位描述:\n{job_description}"}
